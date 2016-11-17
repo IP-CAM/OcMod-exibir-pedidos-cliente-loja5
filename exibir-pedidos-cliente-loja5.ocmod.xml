@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+	<name>Exibir Pedidos por Cliente [Loja5]</name>
+	<version>1.0</version>
+	<code>exibir-pedidos-cliente-loja5</code>
+	<link>http://www.loja5.com.br/</link>
+	<author>Bruno Alencar - suportedaloja@gmail.com</author>
+	<description>Exibi todos os pedidos feitos por o cliente ao editar o mesmo.</description>
+
+	<file path="admin/controller/sale/customer.php">
+		<operation>
+			<search index="" regex="false" trim="false"><![CDATA[$this->response->setOutput($this->load->view('sale/customer_form.tpl', $data));]]></search>
+			<add offset="" trim="false" position="before"><![CDATA[
+			//pedidos do cliente
+		$this->load->model('sale/order');
+		$filtro['filter_customer_id'] = $customer_info['customer_id'];
+		$filtro['order'] = 'DESC';
+		$data['pedidos'] = $this->model_sale_order->getOrders($filtro);
+			]]></add>
+		</operation>
+	</file>
+	
+	<file path="admin/model/sale/order.php">
+		<operation>
+			<search index="" regex="false" trim="false"><![CDATA[if (!empty($data['filter_customer'])) {]]></search>
+			<add offset="" trim="false" position="before"><![CDATA[
+			if (!empty($data['filter_customer_id'])) {
+			$sql .= " AND o.customer_id = '" . $this->db->escape($data['filter_customer_id']) . "'";
+			}
+			]]></add>
+		</operation>
+	</file>
+	
+	<file path="admin/view/template/sale/customer_form.tpl">
+		<operation>
+			<search index="" regex="false" trim="false"><![CDATA[<li><a href="#tab-ip" data-toggle="tab"><?php echo $tab_ip; ?></a></li>]]></search>
+			<add offset="" trim="false" position="after"><![CDATA[
+			<li><a href="#tab-pedidos" data-toggle="tab">Pedidos (<?php echo count($pedidos);?>)</a></li>
+			]]></add>
+		</operation>
+		<operation>
+			<search index="" regex="false" trim="false"><![CDATA[<div class="tab-pane active" id="tab-general">]]></search>
+			<add offset="" trim="false" position="before"><![CDATA[
+			<div class="tab-pane" id="tab-pedidos">
+<table class="table table-striped">
+<thead>
+<tr>
+<th>#</th>
+<th>Cliente</th>
+<th>Status</th>
+<th>Total</th>
+<th>Data</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<?php
+if(isset($pedidos) && $pedidos) {
+foreach($pedidos AS $pedido){
+?>
+<tr>
+<td><?php echo $pedido['order_id'];?></td>
+<td><?php echo $pedido['customer'];?></td>
+<td><?php echo $pedido['status'];?></td>
+<td><?php echo $pedido['total'];?></td>
+<td><?php echo date('d/m/Y H:i:s',strtotime($pedido['date_added']));?></td>
+<td><a href="index.php?route=sale/order/info&token=<?php echo $token;?>&order_id=<?php echo $pedido['order_id'];?>" class="btn btn-info">Ver pedido</a></td>
+</tr>
+<?php } } else{ ?>
+<tr>
+<td colspan="6">Nenhum pedido disponivel a este cliente!</td>
+</tr>
+<?php } ?>
+</tbody>
+</table>
+</div>
+			]]></add>
+		</operation>
+	</file>
+
+</modification>
